@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль — Gswaper</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo">Gswaper</div>
+        <nav>
+            <a href="index.html"><i class="fas fa-home"></i> Главная</a>
+            <a href="orders.html"><i class="fas fa-exchange-alt"></i> Ордера</a>
+            <a href="profile.html"><i class="fas fa-user"></i> Профиль</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container profile">
+            <h2>Мой профиль</h2>
+            <div class="profile-info">
+                <p><strong>Имя:</strong> Пользователь Gswaper</p>
+                <p><strong>Рейтинг:</strong> ★★★★☆ (4.8)</p>
+                <p><strong>Завершено сделок:</strong> <span id="completed-deals">0</span></p>
+                <p><strong>Активных ордеров:</strong> <span id="active-orders">0</span></p>
+            </div>
+
+            <h3>История сделок</h3>
+            <div id="history-list">
+                <p>История пуста.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
