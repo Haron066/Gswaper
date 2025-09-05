@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать ордер — Gswaper</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo">Gswaper</div>
+        <nav>
+            <a href="index.html"><i class="fas fa-home"></i> Главная</a>
+            <a href="orders.html"><i class="fas fa-exchange-alt"></i> Ордера</a>
+            <a href="profile.html"><i class="fas fa-user"></i> Профиль</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>Создать ордер</h2>
+            <form id="order-form">
+                <label>
+                    Тип:
+                    <select name="type" required>
+                        <option value="buy">Покупка</option>
+                        <option value="sell">Продажа</option>
+                    </select>
+                </label>
+
+                <label>
+                    Валюта:
+                    <select name="currency" required>
+                        <option value="BTC">BTC</option>
+                        <option value="USDT">USDT</option>
+                        <option value="ETH">ETH</option>
+                    </select>
+                </label>
+
+                <label>
+                    Сумма (в крипте):
+                    <input type="number" name="amount" step="0.00000001" required>
+                </label>
+
+                <label>
+                    Цена за единицу (в RUB):
+                    <input type="number" name="price" step="0.01" required>
+                </label>
+
+                <label>
+                    Способ оплаты:
+                    <select name="payment" required>
+                        <option value="sberbank">Сбербанк</option>
+                        <option value="tinkoff">Тинькофф</option>
+                        <option value="qiwi">QIWI</option>
+                        <option value="card">Карта</option>
+                    </select>
+                </label>
+
+                <button type="submit" class="btn">Создать ордер</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
