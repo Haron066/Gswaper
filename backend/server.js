@@ -38,6 +38,22 @@ app.post('/api/auth/telegram', async (req, res) => {
     }
 });
 
+app.post('/api/orders', async (req, res) => {
+    const { user_id, currency_from, amount_from, currency_to, amount_to, price, description } = req.body;
+    try {
+        const result = await pool.query(
+            `INSERT INTO orders (user_id, currency_from, amount_from, currency_to, amount_to, price, description) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) 
+             RETURNING *`,
+            [user_id, currency_from, amount_from, currency_to, amount_to, price, description]
+        );
+        res.json({ success: true, order: result.rows[0] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'DB error' });
+    }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
