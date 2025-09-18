@@ -21,10 +21,10 @@
 
         <!-- Telegram Login -->
         <div class="telegram-login-widget"
-             data-bot="@Gswaper_Bot"
+             data-bot="@GswaperBot"
              data-request-access="true"
              data-size="large"
-             data-auth-url="https://gswaper-backend.onrender.com/api/auth/telegram"
+             data-auth-url="https://gswap.onrender.com/api/auth/telegram"
              data-request-email="true">
         </div>
 
@@ -94,7 +94,7 @@
 
             data.user_id = user_id;
 
-            fetch('https://gswaper-backend.onrender.com/api/orders', {
+            fetch('https://gswap.onrender.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
