@@ -2,13 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const TelegramBot = require('node-telegram-bot-api');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Поддержка статических файлов (index.html)
-app.use(express.static('..'));
+// Поддержка статических файлов (index.html и другие)
+app.use(express.static('.')); // ← файлы в корне
 app.use(cors());
 app.use(express.json());
 
@@ -43,7 +44,12 @@ bot.onText(/\/start/, (msg) => {
     });
 });
 
-// Эндпоинты API
+// Главная страница — отдаём index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// API эндпоинты
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Backend is running' });
 });
