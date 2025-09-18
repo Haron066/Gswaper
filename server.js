@@ -23,7 +23,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: false });
 
 // Установка webhook
-const WEBHOOK_URL = process.env.URL || `https://gswaper-backend.onrender.com`;
+const WEBHOOK_URL = process.env.URL || `https://gswap.onrender.com`;
 bot.setWebHook(`${WEBHOOK_URL}/bot-webhook`);
 
 // Обработчик webhook
