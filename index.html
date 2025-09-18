@@ -21,10 +21,10 @@
 
         <!-- Telegram Login -->
         <div class="telegram-login-widget"
-             data-bot="@guraba-bot"
+             data-bot="@Gswaper_Bot"
              data-request-access="true"
              data-size="large"
-             data-auth-url="http://localhost:3001/api/auth/telegram"
+             data-auth-url="https://gswaper-backend.onrender.com/api/auth/telegram"
              data-request-email="true">
         </div>
 
@@ -85,19 +85,43 @@
             const formData = new FormData(this);
             const data = Object.fromEntries(formData.entries());
 
-            fetch('http://localhost:3001/api/orders', {
+            // Получаем user_id из localStorage (после авторизации)
+            const user_id = localStorage.getItem('telegram_user_id');
+            if (!user_id) {
+                alert('Сначала войдите через Telegram');
+                return;
+            }
+
+            data.user_id = user_id;
+
+            fetch('https://gswaper-backend.onrender.com/api/orders', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
             .then(res => res.json())
             .then(response => {
-                alert('Ордер создан!');
-                this.reset();
-                document.getElementById('orderForm').style.display = 'none';
+                if (response.success) {
+                    alert('Ордер создан!');
+                    this.reset();
+                    document.getElementById('orderForm').style.display = 'none';
+                } else {
+                    alert('Ошибка: ' + response.error);
+                }
             })
             .catch(err => alert('Ошибка: ' + err));
         };
+
+        // Обработчик авторизации через Telegram
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'telegram-auth') {
+                const user = e.data;
+                localStorage.setItem('telegram_user_id', user.id);
+                localStorage.setItem('telegram_first_name', user.first_name);
+                localStorage.setItem('telegram_username', user.username);
+                alert('Вы вошли как: ' + user.first_name);
+            }
+        });
     </script>
 </body>
 </html>
