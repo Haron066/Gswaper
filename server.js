@@ -9,8 +9,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Поддержка статических файлов (index.html и другие)
-app.use(express.static('.')); // ← файлы в корне
-app.use(cors());
+app.use(express.static('.'));
+app.use(cors({
+    origin: ['https://haron066.github.io', 'https://gswap.onrender.com'],
+    credentials: true
+}));
 app.use(express.json());
 
 // Подключение к PostgreSQL
