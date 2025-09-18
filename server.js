@@ -9,29 +9,35 @@ const PORT = process.env.PORT || 3001;
 
 // Поддержка статических файлов (index.html)
 app.use(express.static('..'));
-
 app.use(cors());
 app.use(express.json());
 
 // Подключение к PostgreSQL
 const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'gswaper',
-    password: 'haron.06', // ← ЗАМЕНИ НА СВОЙ ПАРОЛЬ ОТ POSTGRESQL
-    port: 5432,
+    connectionString: process.env.DATABASE_URL,
 });
 
-// Telegram Bot
-const TELEGRAM_BOT_TOKEN = '8319521724:AAEgWC1rHGdAF5hlEE7LZ-u0hFwM5XtvieE';
-const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
+// Telegram Bot — через webhook
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: false });
 
+// Установка webhook
+const WEBHOOK_URL = process.env.URL || `https://gswaper-backend.onrender.com`;
+bot.setWebHook(`${WEBHOOK_URL}/bot-webhook`);
+
+// Обработчик webhook
+app.post('/bot-webhook', (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+});
+
+// Обработчик команды /start
 bot.onText(/\/start/, (msg) => {
     const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 'Привет! Это Gswaper — P2P обмен криптовалют.\n\nНажми кнопку ниже, чтобы начать:', {
+    bot.sendMessage(chatId, 'Привет! Это Gswaper — P2P обмен криптовалют.', {
         reply_markup: {
             inline_keyboard: [
-                [{ text: "Открыть сайт", web_app: { url: "https://haron066.github.io/Gswaper/" } }]
+                [{ text: "Открыть сайт", web_app: { url: WEBHOOK_URL } }]
             ]
         }
     });
