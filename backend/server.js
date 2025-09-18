@@ -31,7 +31,7 @@ bot.onText(/\/start/, (msg) => {
     bot.sendMessage(chatId, 'Привет! Это Gswaper — P2P обмен криптовалют.\n\nНажми кнопку ниже, чтобы начать:', {
         reply_markup: {
             inline_keyboard: [
-                [{ text: "Открыть сайт", web_app: { url: "http://localhost:3001" } }]
+                [{ text: "Открыть сайт", web_app: { url: "https://haron066.github.io/Gswaper/" } }]
             ]
         }
     });
