@@ -1,24 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
-const TelegramBot = require('node-telegram-bot-api');
-const path = require('path');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS — разрешаем запросы с GitHub Pages и Render
+// CORS
 app.use(cors({
-    origin: [
-        'https://haron066.github.io',
-        'https://gswap.onrender.com'
-    ],
+    origin: ['https://haron066.github.io', 'https://gswap.onrender.com'],
     credentials: true
 }));
 
-// Поддержка статических файлов (index.html)
-app.use(express.static('.'));
 app.use(express.json());
 
 // Подключение к PostgreSQL
@@ -26,70 +20,75 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-// Telegram Bot — через webhook
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: false });
+// JWT Secret
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 
-// Установка webhook
-const WEBHOOK_URL = process.env.URL || 'https://gswap.onrender.com';
-bot.setWebHook(`${WEBHOOK_URL}/bot-webhook`);
+// Middleware для проверки токена
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, error: 'Требуется авторизация' });
 
-// Обработчик webhook
-app.post('/bot-webhook', (req, res) => {
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-});
-
-// Обработчик команды /start
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, 'Привет! Это Gswaper — P2P обмен криптовалют.', {
-        reply_markup: {
-            inline_keyboard: [
-                [{ text: "Открыть сайт", web_app: { url: WEBHOOK_URL } }]
-            ]
-        }
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ success: false, error: 'Неверный токен' });
+        req.user = user;
+        next();
     });
-});
+}
 
-// Главная страница — отдаём index.html
+// Главная страница
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Эндпоинт для Telegram Login Widget — ОБЯЗАТЕЛЬНО
-app.get('/api/auth/telegram', (req, res) => {
-    // Telegram перенаправит сюда после авторизации — можно вернуть пустой ответ
-    res.json({ success: true });
-});
-
-// API: авторизация через Telegram (POST)
-app.post('/api/auth/telegram', async (req, res) => {
-    const { id, first_name, username } = req.body;
+// Регистрация
+app.post('/api/register', async (req, res) => {
+    const { username, email, password, phone } = req.body;
     try {
         const result = await pool.query(
-            `INSERT INTO users (telegram_id, first_name, username) 
-             VALUES ($1, $2, $3) 
-             ON CONFLICT (telegram_id) DO NOTHING 
-             RETURNING *`,
-            [id, first_name, username]
+            `INSERT INTO users (username, email, password, phone) 
+             VALUES ($1, $2, $3, $4) 
+             RETURNING id, username`,
+            [username, email, password, phone] // ⚠️ В реальном проекте хешируй пароль!
         );
-        res.json({ success: true, user: result.rows[0] || { telegram_id: id } });
+        res.json({ success: true, user: result.rows[0] });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false, error: 'DB error' });
+        res.status(500).json({ success: false, error: 'Ошибка регистрации' });
     }
 });
 
-// API: создание ордера
-app.post('/api/orders', async (req, res) => {
-    const { user_id, currency_from, amount_from, currency_to, amount_to, price, description } = req.body;
+// Вход
+app.post('/api/login', async (req, res) => {
+    const { username, password, code } = req.body;
+    try {
+        // ⚠️ В реальном проекте: проверяй хеш пароля и 2FA
+        const result = await pool.query(
+            `SELECT id, username FROM users WHERE username = $1 AND password = $2`,
+            [username, password]
+        );
+        if (result.rows.length === 0) {
+            return res.status(401).json({ success: false, error: 'Неверный логин или пароль' });
+        }
+
+        // Генерация JWT
+        const token = jwt.sign({ id: result.rows[0].id }, JWT_SECRET, { expiresIn: '24h' });
+        res.json({ success: true, token });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: 'Ошибка входа' });
+    }
+});
+
+// Создание ордера (требует авторизации)
+app.post('/api/orders', authenticateToken, async (req, res) => {
+    const { currency_from, amount_from, currency_to, amount_to, price, description } = req.body;
     try {
         const result = await pool.query(
             `INSERT INTO orders (user_id, currency_from, amount_from, currency_to, amount_to, price, description) 
              VALUES ($1, $2, $3, $4, $5, $6, $7) 
              RETURNING *`,
-            [user_id, currency_from, amount_from, currency_to, amount_to, price, description]
+            [req.user.id, currency_from, amount_from, currency_to, amount_to, price, description]
         );
         res.json({ success: true, order: result.rows[0] });
     } catch (err) {
@@ -102,3 +101,4 @@ app.post('/api/orders', async (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
+
