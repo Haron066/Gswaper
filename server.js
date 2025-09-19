@@ -8,12 +8,17 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Поддержка статических файлов (index.html и другие)
-app.use(express.static('.'));
+// CORS — разрешаем запросы с GitHub Pages и Render
 app.use(cors({
-    origin: ['https://haron066.github.io', 'https://gswap.onrender.com'],
+    origin: [
+        'https://haron066.github.io',
+        'https://gswap.onrender.com'
+    ],
     credentials: true
 }));
+
+// Поддержка статических файлов (index.html)
+app.use(express.static('.'));
 app.use(express.json());
 
 // Подключение к PostgreSQL
@@ -26,7 +31,7 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: false });
 
 // Установка webhook
-const WEBHOOK_URL = process.env.URL || `https://gswap.onrender.com`;
+const WEBHOOK_URL = process.env.URL || 'https://gswap.onrender.com';
 bot.setWebHook(`${WEBHOOK_URL}/bot-webhook`);
 
 // Обработчик webhook
@@ -52,11 +57,13 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// API эндпоинты
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Backend is running' });
+// Эндпоинт для Telegram Login Widget — ОБЯЗАТЕЛЬНО
+app.get('/api/auth/telegram', (req, res) => {
+    // Telegram перенаправит сюда после авторизации — можно вернуть пустой ответ
+    res.json({ success: true });
 });
 
+// API: авторизация через Telegram (POST)
 app.post('/api/auth/telegram', async (req, res) => {
     const { id, first_name, username } = req.body;
     try {
@@ -74,6 +81,7 @@ app.post('/api/auth/telegram', async (req, res) => {
     }
 });
 
+// API: создание ордера
 app.post('/api/orders', async (req, res) => {
     const { user_id, currency_from, amount_from, currency_to, amount_to, price, description } = req.body;
     try {
